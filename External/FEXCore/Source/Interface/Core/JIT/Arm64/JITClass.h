@@ -206,8 +206,11 @@ private:
    * @name Dispatch Helper functions
    * @{ */
   aarch64::Label LoopTop{};
+  aarch64::Label FullLookup{};
   aarch64::Label Exit{};
   uint64_t AbsoluteLoopTopAddress{};
+  uint64_t AbsoluteFullLookupAddress{};
+  uint64_t InterpreterFallbackHelperAddress{};
   uint64_t ThreadPauseHandlerAddress{};
 
   Label ThreadPauseHandler{};
