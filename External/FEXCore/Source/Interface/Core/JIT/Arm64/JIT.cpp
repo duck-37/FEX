@@ -684,10 +684,25 @@ void *JITCore::CompileCode([[maybe_unused]] FEXCore::IR::IRListView<true> const 
   using namespace aarch64;
   JumpTargets.clear();
   uint32_t SSACount = IR->GetSSACount();
-
+  auto Buffer = GetBuffer();
+  
   auto HeaderOp = IR->GetHeader();
   if (HeaderOp->ShouldInterpret) {
-    return reinterpret_cast<void*>(ThreadSharedData.InterpreterFallbackHelperAddress);
+    
+    auto Entry = Buffer->GetOffsetAddress<uint64_t>(GetCursorOffset());
+
+    LoadConstant(x0, HeaderOp->Entry);
+    str(x0, MemOperand(STATE, offsetof(FEXCore::Core::ThreadState, State.rip)));
+    
+    LoadConstant(x0, InterpreterFallbackHelperAddress);
+    br(x0);
+
+    FinalizeCode();
+
+    auto CodeEnd = Buffer->GetOffsetAddress<uint64_t>(GetCursorOffset());
+    CPU.EnsureIAndDCacheCoherency(reinterpret_cast<void*>(Entry), CodeEnd - reinterpret_cast<uint64_t>(Entry));
+
+    return reinterpret_cast<void*>(Entry);
   }
 
   this->IR = IR;
@@ -722,7 +737,6 @@ void *JITCore::CompileCode([[maybe_unused]] FEXCore::IR::IRListView<true> const 
   // X1-X3 = Temp
   // X4-r18 = RA
 
-  auto Buffer = GetBuffer();
   auto Entry = Buffer->GetOffsetAddress<uint64_t>(GetCursorOffset());
 
   if (SpillSlots) {
@@ -1067,6 +1081,9 @@ void JITCore::CreateCustomDispatch(FEXCore::Core::InternalThreadState *Thread) {
   // Need to create the block
   {
     bind(&NoBlock);
+
+    // not sure if needed or not, but store RIP to context just in case
+    str(x2, MemOperand(STATE, offsetof(FEXCore::Core::ThreadState, State.rip)));
 
     ldr(x0, MemOperand(STATE, offsetof(FEXCore::Core::InternalThreadState, CTX)));
     mov(x1, STATE);
