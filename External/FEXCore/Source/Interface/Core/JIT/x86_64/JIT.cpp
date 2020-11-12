@@ -919,7 +919,7 @@ void JITCore::CreateCustomDispatch(FEXCore::Core::InternalThreadState *Thread) {
     // {rdi, rsi, rdx}
     mov(rdi, (uintptr_t)this);
     mov(rsi, STATE);
-    pop(rdx); // pushed return address
+    mov(rdx, rax); // rax is set at the block end
 
     mov(rax, (uintptr_t)&ExitFunctionLink);
     call(rax);
