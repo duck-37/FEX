@@ -134,6 +134,8 @@ private:
     CurrentCodeBuffer = &CodeBuffers.emplace_back(Buffer);
   }
 
+  static uint64_t ExitFunctionLink(JITCore* code, FEXCore::Core::InternalThreadState *Thread, uint64_t *record);
+
   // This is the initial code buffer that we will fall back to
   // In a program without signals and code clearing, we will typically
   // only have this code buffer
@@ -150,6 +152,7 @@ private:
 
   uint64_t AbsoluteLoopTopAddress{};
   uint64_t AbsoluteFullLookupAddress{};
+  uint64_t ExitFunctionLinkerAddress{};
   uint64_t ThreadStopHandlerAddress{};
   uint64_t ThreadPauseHandlerAddress{};
 
