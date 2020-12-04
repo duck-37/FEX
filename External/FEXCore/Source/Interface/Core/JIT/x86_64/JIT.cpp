@@ -581,7 +581,7 @@ void *JITCore::CompileCode([[maybe_unused]] FEXCore::IR::IRListView<true> const 
     mov(rax, HeaderOp->Entry);
     mov(qword [STATE + offsetof(FEXCore::Core::CPUState, rip)], rax);
 
-    mov(rax, (uintptr_t)InterpreterFallbackHelperAddress);
+    mov(rax, (uintptr_t)ThreadSharedData.InterpreterFallbackHelperAddress);
     jmp(rax);
 
     ready();
@@ -964,7 +964,7 @@ void JITCore::CreateCustomDispatch(FEXCore::Core::InternalThreadState *Thread) {
 
   {
     // Interpreter fallback helper code
-    InterpreterFallbackHelperAddress = getCurr<void*>();
+    ThreadSharedData.InterpreterFallbackHelperAddress = getCurr<void*>();
     
     mov(rdi, STATE);
     mov(rax, reinterpret_cast<uint64_t>(ThreadState->IntBackend->CompileCode(nullptr, nullptr)));
